@@ -1,0 +1,74 @@
+// Extracted from POCO X8 Pro Max OS3.0.304.0.WPLMIXM.
+// Source: oss-dash/proprietary_vendor_xiaomi_dash, c0ac61d8a3859bd5f3cae83a9718ae4450322ed9.
+// Keep the Google signature. The MTK clients are installed privately in
+// system_ext, with an init-environment adapter for vendor property reads.
+
+// Materialize the host symlink before the preprocessed APK is installed.
+genrule {
+    name: "dash-euicc-google-source",
+    srcs: ["EuiccGoogle.apk"],
+    out: ["EuiccGoogle-source.apk"],
+    cmd: "cat $(in) > $(out)",
+}
+
+android_app_import {
+    name: "DashEuiccGoogle",
+    apk: ":dash-euicc-google-source",
+    preprocessed: true,
+    presigned: true,
+    privileged: true,
+    product_specific: true,
+    dex_preopt: { enabled: false },
+}
+
+// Source views use host symlinks; prebuilt binaries require a regular input.
+genrule {
+    name: "dash-esim-modem-source",
+    srcs: ["mtkmtb"],
+    out: ["dash-esim-modem"],
+    cmd: "cat $(in) > $(out)",
+}
+
+cc_prebuilt_binary {
+    name: "dash-esim-modem",
+    srcs: [":dash-esim-modem-source"],
+    system_ext_specific: true,
+    compile_multilib: "64",
+    strip: { none: true },
+    shared_libs: [
+        "libmipc_dash_esim", "libmtkrillog_dash_esim", "libutils", "libcutils", "libc++",
+    ],
+}
+
+cc_prebuilt_library_shared {
+    name: "libmipc_dash_esim",
+    stem: "libmipc",
+    srcs: ["libmipc.so"],
+    system_ext_specific: true,
+    relative_install_path: "dash-esim",
+    compile_multilib: "64",
+    strip: { none: true },
+    shared_libs: ["libmtkrillog_dash_esim", "libtrm_dash_esim", "libmtkproperty_dash_esim", "libc++"],
+}
+
+cc_prebuilt_library_shared {
+    name: "libtrm_dash_esim",
+    stem: "libtrm",
+    srcs: ["libtrm.so"],
+    system_ext_specific: true,
+    relative_install_path: "dash-esim",
+    compile_multilib: "64",
+    strip: { none: true },
+    shared_libs: ["libmtkrillog_dash_esim", "libmtkproperty_dash_esim", "libc++"],
+}
+
+cc_prebuilt_library_shared {
+    name: "libmtkrillog_dash_esim",
+    stem: "libmtkrillog",
+    srcs: ["libmtkrillog.so"],
+    system_ext_specific: true,
+    relative_install_path: "dash-esim",
+    compile_multilib: "64",
+    strip: { none: true },
+    shared_libs: ["liblog", "libc++"],
+}
